@@ -16,7 +16,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(unique = True)
     email: Mapped[str] = mapped_column(unique = True)
     hashed_password: Mapped[str]
-    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole, name = "user_role_enum"), nullable = False, default = UserRole.CUSTOMER, server_default = "customer")
+    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole, name = "user_role_enum"), nullable = False, default = UserRole.CUSTOMER, server_default = "CUSTOMER")
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(server_default = func.now())
     cart: Mapped["Cart"] = relationship(back_populates = "user", lazy = "select")
