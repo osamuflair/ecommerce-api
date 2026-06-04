@@ -22,3 +22,4 @@ class User(Base):
     cart: Mapped["Cart"] = relationship(back_populates = "user", lazy = "select")
     orders: Mapped[list["Order"]] = relationship(back_populates = "user", lazy = "select")
     wishlist: Mapped["Wishlist"] = relationship(back_populates = "user", lazy = "select")
+    addresses: Mapped[list["Address"]] = relationship(back_populates = "user", lazy = "select")

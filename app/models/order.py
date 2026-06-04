@@ -22,8 +22,10 @@ class Order(Base):
     total_price: Mapped[float]
     status: Mapped[OrderStatus] = mapped_column(SQLEnum(OrderStatus, name = "order_status_enum"), nullable = False, default = OrderStatus.PENDING,  server_default = "PENDING")
     created_at: Mapped[datetime] = mapped_column(server_default = func.now())
+    address_id: Mapped[int] = mapped_column(ForeignKey("address.id"))
     user: Mapped["User"] = relationship(back_populates = "orders", lazy = "select")
     order_items: Mapped[list["OrderItem"]] = relationship(back_populates = "order", lazy = "select")
+    address: Mapped["Address"] = relationship(back_populates = "orders", lazy = "select")
 
 class OrderItem(Base):
     __tablename__ = "order_item"

@@ -7,7 +7,7 @@ from alembic import context
 
 from app.core.config import settings
 from app.core.database import Base
-from app.models import user, category, product, cart, order, wishlist
+from app.models import user, category, product, cart, order, wishlist, address
 from sqlalchemy import create_engine
 
 # this is the Alembic Config object, which provides
