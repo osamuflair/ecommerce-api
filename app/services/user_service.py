@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
+from app.models.cart import Cart
+from app.models.wishlist import Wishlist
 from fastapi import HTTPException
 from app.core.security import hash_password
 
@@ -17,6 +19,12 @@ def create_user(db: Session, user_data: UserCreate) -> User:
         hashed_password = hash_password(user_data.password)
     )
     db.add(new_user)
+    db.flush()
+
+    new_cart = Cart(user_id = new_user.id)
+    new_wishlist = Wishlist(user_id = new_user.id)
+    db.add(new_cart)
+    db.add(new_wishlist)
     db.commit()
     db.refresh(new_user)
     return new_user
