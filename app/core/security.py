@@ -1,7 +1,11 @@
 from pwdlib import PasswordHash
 import jwt
 from datetime import datetime, timedelta, timezone
-
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from typing import Annotated
+from sqlalchemy.orm import Session
+from app.core.database import get_session
 from app.core.config import settings
 
 password_hash = PasswordHash.recommended()
@@ -30,3 +34,15 @@ def decode_token(token):
         return decoded.get('sub')
     except jwt.PyJWTError:
         return None
+    
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
+
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_session)):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    from app.services.user_service import get_user_by_username
+    user = get_user_by_username(db, username)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
