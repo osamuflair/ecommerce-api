@@ -20,7 +20,7 @@ def user_registration(user_details: UserCreate, db: Annotated[Session, Depends(g
         create_user(db, user_details)
         return({"Message": "Successfully Registered"})
 
-@router.post("/token")
+@router.post("/login")
 def user_log_in(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Annotated[Session, Depends(get_session)]):
     token = log_in(db, form_data.username, form_data.password)
     return {"access_token": token, "token_type": "bearer"}

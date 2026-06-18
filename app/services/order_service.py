@@ -1,11 +1,12 @@
 from sqlalchemy.orm import Session
 from app.models.order import Order, OrderItem, OrderStatus
+from app.models.product import Product
 from app.schemas.order import OrderResponse, OrderItemResponse
 from app.services.cart_service import get_cart_items, clear_cart
 from app.services.address_service import get_user_addresses
 from fastapi import HTTPException
 
-def checkout(db: Session, user_id: int, cart_id: int) -> Order:
+def checkout(db: Session, user_id: int, cart_id: int) -> OrderResponse:
     existing_cart_items = get_cart_items(db, cart_id)
     if not existing_cart_items:
         raise HTTPException(status_code = 404, detail = "Cart is empty")    
@@ -16,7 +17,8 @@ def checkout(db: Session, user_id: int, cart_id: int) -> Order:
         if address.is_default is True:
             address_id = address.id
             break
-        address_id = address.id
+    if address_id is None:
+        raise HTTPException(status_code = 409, detail = "Set default delivery address before proceeding")
     new_order = Order(
         user_id = user_id,
         total_price = 0,
@@ -25,37 +27,42 @@ def checkout(db: Session, user_id: int, cart_id: int) -> Order:
     db.add(new_order)
     db.flush()
 
+
     total_price: float = 0.00  
     for cart_item in existing_cart_items:
+        product = db.query(Product).filter(Product.id == cart_item.product_id).first()
+        if cart_item.quantity > product.stock_quantity:
+            raise HTTPException(status_code = 409, detail = f"Only {product.stock_quantity} units remaining in stock")
         new_order_item = OrderItem(
             order_id = new_order.id,
             product_id =cart_item.product_id,
             quantity = cart_item.quantity,
             price = cart_item.product.price
         )
+        product.stock_quantity -= cart_item.quantity
         total_price += cart_item.quantity * cart_item.product.price
         db.add(new_order_item)
 
     new_order.total_price = total_price 
     clear_cart(db, cart_id)
     db.commit()
-    db.refresh(new_order)
-    return new_order
+    db.refresh(new_order, product)
+    return OrderResponse(new_order)
 
-def update_order_status(db: Session, user_id: int, order_id: int, new_status: OrderStatus):
+def update_order_status(db: Session, user_id: int, order_id: int, new_status: OrderStatus) -> OrderResponse:
     existing_order = db.query(Order).filter(Order.user_id == user_id, Order.id == order_id).first()
     if not existing_order:
         raise HTTPException(status_code = 404, detail = "Order not found")
     existing_order.status = new_status
     db.commit()
     db.refresh(existing_order)
-    return existing_order
+    return OrderResponse(existing_order)
 
 def user_orders(db: Session, user_id: int) -> list[OrderResponse]:
-    return db.query(Order).filter(Order.user_id == user_id).all()
+    return OrderResponse(db.query(Order).filter(Order.user_id == user_id).all())
 
 def get_order(db: Session, user_id: int, order_id: int) -> OrderResponse:
     existing_order = db.query(Order).filter(Order.user_id == user_id, Order.id == order_id).first()
     if not existing_order:
         raise HTTPException(status_code = 404, detail = "Order not found")
-    return existing_order
+    return OrderResponse(existing_order)

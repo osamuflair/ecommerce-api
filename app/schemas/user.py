@@ -54,3 +54,20 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
+    
+    @field_validator("username")
+    @classmethod
+    def valid_username(cls, v):
+        if v is None:
+            return v
+        if len(v) < 3:
+            raise ValueError("username must have a minimum of 3 characters")
+        if len(v) > 20:
+            raise ValueError("username must have a maximum 20 characters")
+        if v in RESERVED_USERNAME:
+            raise ValueError("username is reserved")
+        if v[0] == "_" or v[-1] == "_":
+            raise ValueError("username cannot start or end with an underscore")
+        if ALLOWED_PATTERN.search(v):
+            return v
+        raise ValueError("username must contain, letters, numbers and underscore")

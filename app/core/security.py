@@ -35,7 +35,7 @@ def decode_token(token):
     except jwt.PyJWTError:
         return None
     
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_session)):
     username = decode_token(token)
