@@ -12,6 +12,7 @@ def checkout(db: Session, user_id: int, cart_id: int) -> Order:
     user_addresses = get_user_addresses(db, user_id)
     if not user_addresses:
         raise HTTPException(status_code = 404, detail = "Delivery address is not set")
+    address_id = None
     for address in user_addresses:
         if address.is_default is True:
             address_id = address.id
@@ -45,7 +46,7 @@ def checkout(db: Session, user_id: int, cart_id: int) -> Order:
     new_order.total_price = total_price 
     clear_cart(db, cart_id)
     db.commit()
-    db.refresh(new_order, product)
+    db.refresh(new_order)
     return new_order
 
 def update_order_status(db: Session, user_id: int, order_id: int, new_status: OrderStatus) -> Order:
