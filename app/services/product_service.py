@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from app.models.product import Product
-from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
+from app.schemas.product import ProductCreate, ProductUpdate
 from fastapi import HTTPException
 
-def create_product(db: Session, created_product: ProductCreate) -> ProductResponse:
+def create_product(db: Session, created_product: ProductCreate) -> Product:
     existing_product = db.query(Product).filter(Product.name == created_product.name).first()
     if existing_product:
         raise HTTPException(status_code = 400, detail = "Product already exists")
@@ -17,9 +17,9 @@ def create_product(db: Session, created_product: ProductCreate) -> ProductRespon
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
-    return ProductResponse(new_product)
+    return new_product
 
-def update_product(db: Session, product_id: int, updated_product: ProductUpdate) -> ProductResponse:
+def update_product(db: Session, product_id: int, updated_product: ProductUpdate) -> Product:
     existing_product = db.query(Product).filter(Product.id == product_id).first()
     if not existing_product:
         raise HTTPException(status_code = 404, detail = "Product not found")
@@ -33,18 +33,18 @@ def update_product(db: Session, product_id: int, updated_product: ProductUpdate)
         existing_product.category_id = updated_product.category_id
     db.commit()
     db.refresh(existing_product)
-    return ProductResponse(existing_product)
+    return Product(existing_product)
 
-def delete_product(db: Session, product_id: int) -> ProductResponse:
+def delete_product(db: Session, product_id: int) -> Product:
     existing_product = db.query(Product).filter(Product.id == product_id).first()
     if not existing_product:
         raise HTTPException(status_code = 404, detail = "Product not found")
     db.delete(existing_product)
     db.commit()
-    return ProductResponse(existing_product)
+    return existing_product
 
-def get_product_by_id(db: Session, product_id: int) -> ProductResponse | None:
-    return ProductResponse(db.query(Product).filter(Product.id == product_id).first())
+def get_product_by_id(db: Session, product_id: int) -> Product | None:
+    return db.query(Product).filter(Product.id == product_id).first()
 
-def get_all_product(db: Session) -> list[ProductResponse]:
-    return ProductResponse(db.query(Product).all())
+def get_all_product(db: Session) -> list[Product]:
+    return db.query(Product).all()

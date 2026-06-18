@@ -1,12 +1,11 @@
 from sqlalchemy.orm import Session
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.product import Product
-from app.schemas.order import OrderResponse, OrderItemResponse
 from app.services.cart_service import get_cart_items, clear_cart
 from app.services.address_service import get_user_addresses
 from fastapi import HTTPException
 
-def checkout(db: Session, user_id: int, cart_id: int) -> OrderResponse:
+def checkout(db: Session, user_id: int, cart_id: int) -> Order:
     existing_cart_items = get_cart_items(db, cart_id)
     if not existing_cart_items:
         raise HTTPException(status_code = 404, detail = "Cart is empty")    
@@ -47,22 +46,22 @@ def checkout(db: Session, user_id: int, cart_id: int) -> OrderResponse:
     clear_cart(db, cart_id)
     db.commit()
     db.refresh(new_order, product)
-    return OrderResponse(new_order)
+    return new_order
 
-def update_order_status(db: Session, user_id: int, order_id: int, new_status: OrderStatus) -> OrderResponse:
+def update_order_status(db: Session, user_id: int, order_id: int, new_status: OrderStatus) -> Order:
     existing_order = db.query(Order).filter(Order.user_id == user_id, Order.id == order_id).first()
     if not existing_order:
         raise HTTPException(status_code = 404, detail = "Order not found")
     existing_order.status = new_status
     db.commit()
     db.refresh(existing_order)
-    return OrderResponse(existing_order)
+    return existing_order
 
-def user_orders(db: Session, user_id: int) -> list[OrderResponse]:
-    return OrderResponse(db.query(Order).filter(Order.user_id == user_id).all())
+def user_orders(db: Session, user_id: int) -> list[Order]:
+    return db.query(Order).filter(Order.user_id == user_id).all()
 
-def get_order(db: Session, user_id: int, order_id: int) -> OrderResponse:
+def get_order(db: Session, user_id: int, order_id: int) -> Order:
     existing_order = db.query(Order).filter(Order.user_id == user_id, Order.id == order_id).first()
     if not existing_order:
         raise HTTPException(status_code = 404, detail = "Order not found")
-    return OrderResponse(existing_order)
+    return existing_order

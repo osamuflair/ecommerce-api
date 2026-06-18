@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.models.user import User
 from app.core.database import get_session
+from app.schemas.user import UserResponse
 from app.core.security import get_current_user
 from app.services.user_service import create_user, update_user, deactivate_user
 from app.services.auth_service import log_in
@@ -25,7 +26,7 @@ def user_log_in(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
     token = log_in(db, form_data.username, form_data.password)
     return {"access_token": token, "token_type": "bearer"}
 
-@router.get("/me")
+@router.get("/me", response_model = UserResponse)
 def get_user(current_user: Annotated[User, Depends(get_current_user)]):
       return current_user
 

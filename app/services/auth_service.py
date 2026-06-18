@@ -1,11 +1,10 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.schemas.user import UserResponse
 from fastapi import HTTPException
 from app.core.security import hash_password, verify_password, create_access_token
 DUMMY_PASSWORD = hash_password("DummY_PAsswORD123#$%")
 
-def authenticate_user(db: Session, username: str, password: str) -> UserResponse:
+def authenticate_user(db: Session, username: str, password: str) -> User:
     existing_user = db.query(User).filter(User.username == username).first()
     if not existing_user:
         verify_password(password, DUMMY_PASSWORD)

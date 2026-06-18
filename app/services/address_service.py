@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from app.models.address import Address
-from app.schemas.address import AddressCreate,  AddressUpdate, AddressResponse
+from app.schemas.address import AddressCreate,  AddressUpdate
 from fastapi import HTTPException
 
-def create_address(db: Session, user_id: int, created_address: AddressCreate) -> AddressResponse:
+def create_address(db: Session, user_id: int, created_address: AddressCreate) -> Address:
     new_address = Address(
         user_id = user_id,
         full_name = created_address.full_name,
@@ -15,9 +15,9 @@ def create_address(db: Session, user_id: int, created_address: AddressCreate) ->
     db.add(new_address)
     db.commit()
     db.refresh(new_address)
-    return AddressResponse(new_address)
+    return new_address
 
-def update_address(db: Session, user_id: int, address_id: int, updated_address: AddressUpdate) -> AddressResponse:
+def update_address(db: Session, user_id: int, address_id: int, updated_address: AddressUpdate) -> Address:
     existing_address = db.query(Address).filter(
         Address.id == address_id,
         Address.user_id == user_id
@@ -34,9 +34,9 @@ def update_address(db: Session, user_id: int, address_id: int, updated_address: 
         existing_address.state = updated_address.state
     db.commit()
     db.refresh(existing_address)
-    return AddressResponse(existing_address)
+    return existing_address
 
-def set_default_address(db: Session, user_id: int, address_id: int) -> AddressResponse:
+def set_default_address(db: Session, user_id: int, address_id: int) -> Address:
     existing_address = db.query(Address).filter(
         Address.id == address_id,
         Address.user_id == user_id
@@ -47,9 +47,9 @@ def set_default_address(db: Session, user_id: int, address_id: int) -> AddressRe
     existing_address.is_default = True
     db.commit()
     db.refresh(existing_address)
-    return AddressResponse(existing_address)
+    return existing_address
 
-def delete_address(db: Session, user_id: int, address_id: int) -> AddressResponse:
+def delete_address(db: Session, user_id: int, address_id: int) -> Address:
     existing_address = db.query(Address).filter(
         Address.id == address_id,
         Address.user_id == user_id
@@ -58,7 +58,7 @@ def delete_address(db: Session, user_id: int, address_id: int) -> AddressRespons
         raise HTTPException(status_code = 404, detail = "Address not found")
     db.delete(existing_address)
     db.commit()
-    return AddressResponse(existing_address)
+    return existing_address
 
 def get_user_addresses(db: Session, user_id: int) -> list[Address]:
-    return AddressResponse(db.query(Address).filter(Address.user_id == user_id).all())
+    return db.query(Address).filter(Address.user_id == user_id).all()

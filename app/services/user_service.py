@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate, UserResponse
+from app.schemas.user import UserCreate, UserUpdate
 from app.models.cart import Cart
 from app.models.wishlist import Wishlist
 from fastapi import HTTPException
 from app.core.security import hash_password
 
-def create_user(db: Session, user_data: UserCreate) -> UserResponse:
+def create_user(db: Session, user_data: UserCreate) -> User:
     existing_username = db.query(User).filter(User.username == user_data.username).first()
     existing_email = db.query(User).filter(User.email == user_data.email).first()
     if existing_username:
@@ -27,9 +27,9 @@ def create_user(db: Session, user_data: UserCreate) -> UserResponse:
     db.add(new_wishlist)
     db.commit()
     db.refresh(new_user)
-    return UserResponse(new_user)
+    return new_user
 
-def update_user(db: Session, user_id: int, updated_data: UserUpdate) -> UserResponse:
+def update_user(db: Session, user_id: int, updated_data: UserUpdate) -> User:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -39,13 +39,13 @@ def update_user(db: Session, user_id: int, updated_data: UserUpdate) -> UserResp
         user.email = updated_data.email
     db.commit()
     db.refresh(user)
-    return UserResponse(user)
+    return user
 
-def get_user_by_username(db: Session, username: str) -> UserResponse | None:
-    return UserResponse(db.query(User).filter(User.username == username).first())
+def get_user_by_username(db: Session, username: str) -> User | None:
+    return db.query(User).filter(User.username == username).first()
 
 def get_user_by_id(db: Session, user_id: int) -> User | None:
-    return UserResponse(db.query(User).filter(User.id == user_id).first())
+    return db.query(User).filter(User.id == user_id).first()
 
 def deactivate_user(db: Session, user_id: int) -> User:
     user = db.query(User).filter(User.id == user_id).first()
@@ -54,4 +54,4 @@ def deactivate_user(db: Session, user_id: int) -> User:
     user.is_active = False
     db.commit()
     db.refresh(user)
-    return UserResponse(user)
+    return user
