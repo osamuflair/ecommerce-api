@@ -35,12 +35,12 @@ def update_user(db: Session, user_id: int, updated_data: UserUpdate) -> User:
         raise HTTPException(status_code=404, detail="User not found")
     if updated_data.username:
         existing_username = db.query(User).filter(User.username == updated_data.username).first()
-        if existing_username and existing_username.id != user.user_id:
+        if existing_username and existing_username.id != user.id:
             raise HTTPException(status_code = 400, detail = "username already taken")
         user.username = updated_data.username
     if updated_data.email: 
         existing_email = db.query(User).filter(User.email == updated_data.email).first()
-        if existing_email and existing_username.email != user.email:
+        if existing_email and existing_email.email != user.email:
             raise HTTPException(status_code = 400, detail = "email address already in use")
         user.email = updated_data.email
     db.commit()
