@@ -12,6 +12,6 @@ class Address(Base):
     street_address: Mapped[str]
     city: Mapped[str]
     state: Mapped[str]
-    is_default: Mapped[bool] = mapped_column(default = False, server_default = False)
+    is_default: Mapped[bool] = mapped_column(default = False)
     user: Mapped["User"] = relationship(back_populates = "addresses", lazy = "select")
     orders: Mapped[list["Order"]] = relationship(back_populates = "address", lazy = "select")
