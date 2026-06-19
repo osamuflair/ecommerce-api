@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.cart import CartItem
+from app.models.cart import CartItem, Cart
 from app.schemas.cart import CartItemCreate, CartItemUpdate
 from fastapi import HTTPException
 
@@ -52,3 +52,13 @@ def get_cart_items(db: Session, cart_id: int) -> list[CartItem]:
 def clear_cart(db: Session, cart_id: int):
     db.query(CartItem).filter(CartItem.cart_id == cart_id).delete()
     db.commit()
+
+def get_or_create_cart(db: Session, user_id: int) -> Cart:
+    existing_cart = db.query(Cart).filter(Cart.user_id == user_id).first()
+    if not existing_cart:
+        new_cart = Cart(user_id = user_id)
+        db.add(new_cart)
+        db.commit()
+        db.refresh(new_cart)
+        return new_cart
+    return existing_cart
