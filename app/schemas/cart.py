@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 class CartItemCreate(BaseModel):
+    product_id: int
     quantity: int
 
 class CartItemResponse(BaseModel):
