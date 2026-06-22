@@ -15,5 +15,5 @@ router = APIRouter(
 @router.post("/items/")
 def cart_item_add(db: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)], created_cart_item: CartItemCreate):
     cart = get_or_create_cart(db, current_user.id)
-    add_cart_item(db, created_cart_item, cart.id, created_cart_item.product_id)
+    add_cart_item(db, created_cart_item, cart.id)
     return({"Message": "Item Successfully Added to Cart"})

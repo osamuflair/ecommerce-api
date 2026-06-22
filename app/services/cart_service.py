@@ -3,10 +3,10 @@ from app.models.cart import CartItem, Cart
 from app.schemas.cart import CartItemCreate, CartItemUpdate
 from fastapi import HTTPException
 
-def add_cart_item(db: Session, created_cart_item: CartItemCreate, cart_id: int, product_id: int) -> CartItem:
+def add_cart_item(db: Session, created_cart_item: CartItemCreate, cart_id: int) -> CartItem:
     existing_cart_item = db.query(CartItem).filter(
         CartItem.cart_id == cart_id,
-        CartItem.product_id == product_id
+        CartItem.product_id == created_cart_item.product_id
     ).first()
     if existing_cart_item:
         existing_cart_item.quantity += created_cart_item.quantity
@@ -15,7 +15,7 @@ def add_cart_item(db: Session, created_cart_item: CartItemCreate, cart_id: int, 
         return existing_cart_item
     new_cart_item = CartItem(
         cart_id = cart_id,
-        product_id = product_id,
+        product_id = created_cart_item.product_id,
         quantity = created_cart_item.quantity
     )
     db.add(new_cart_item)
