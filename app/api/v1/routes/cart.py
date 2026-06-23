@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.core.security import get_current_user
 from app.models.user import User
-from app.schemas.cart import CartItemCreate, CartItemUpdate
+from app.schemas.cart import CartItemCreate, CartItemUpdate, CartItemResponse
 from app.services.cart_service import get_or_create_cart, add_cart_item, update_cart_item, remove_cart_item, clear_cart, get_cart_items
 
 router = APIRouter(
@@ -36,7 +36,7 @@ def cart_clear(db: Annotated[Session, Depends(get_session)], current_user: Annot
     clear_cart(db, cart.id)
     return ({"Message": "Cart Successfully Cleared"})
 
-@router.get("/")
+@router.get("/", response_model = list[CartItemResponse])
 def cart_items_get(db: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)]):
     cart = get_or_create_cart(db, current_user.id)
     return get_cart_items(db, cart.id)
