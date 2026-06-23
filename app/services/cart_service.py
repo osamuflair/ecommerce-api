@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.cart import CartItem, Cart
 from app.schemas.cart import CartItemCreate, CartItemUpdate
+from app.models.product import Product
 from fastapi import HTTPException
 
 def add_cart_item(db: Session, created_cart_item: CartItemCreate, cart_id: int) -> CartItem:
@@ -8,11 +9,17 @@ def add_cart_item(db: Session, created_cart_item: CartItemCreate, cart_id: int) 
         CartItem.cart_id == cart_id,
         CartItem.product_id == created_cart_item.product_id
     ).first()
+    stock = db.query(Product).filter(Product.id == created_cart_item.product_id).first()
     if existing_cart_item:
-        existing_cart_item.quantity += created_cart_item.quantity
+        updated_quantity = existing_cart_item.quantity + created_cart_item.quantity
+        if updated_quantity > stock.stock_quantity:
+            raise HTTPException(status_code = 409, detail = f"Only {stock.stock_quantity} units remaining in stock")
+        existing_cart_item.quantity = updated_quantity
         db.commit()
         db.refresh(existing_cart_item)
         return existing_cart_item
+    if created_cart_item.quantity > stock.stock_quantity:
+            raise HTTPException(status_code = 409, detail = f"Only {stock.stock_quantity} units remaining in stock")
     new_cart_item = CartItem(
         cart_id = cart_id,
         product_id = created_cart_item.product_id,
@@ -30,6 +37,9 @@ def update_cart_item(db: Session, cart_id: int, updated_cart_item: CartItemUpdat
     ).first()
     if not existing_cart_item:
         raise HTTPException(status_code = 404, detail = "cart item not found")
+    stock = db.query(Product).filter(Product.id == existing_cart_item.product_id).first()
+    if updated_cart_item.quantity > stock.stock_quantity:
+        raise HTTPException(status_code = 409, detail = f"Only {stock.stock_quantity} units remaining in stock")
     existing_cart_item.quantity = updated_cart_item.quantity
     db.commit()
     db.refresh(existing_cart_item)
