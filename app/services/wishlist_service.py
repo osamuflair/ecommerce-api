@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.wishlist import WishlistItem
+from app.models.wishlist import WishlistItem, Wishlist
 from fastapi import HTTPException
 
 def add_to_wishlist(db: Session, wishlist_id: int, product_id: int) -> WishlistItem:
@@ -35,3 +35,13 @@ def remove_from_wishlist(db: Session, wishlist_id: int, wishlist_item_id: int) -
 def clear_wishlist(db: Session, wishlist_id: int):
     db.query(WishlistItem).filter(WishlistItem.wishlist_id == wishlist_id).delete()
     db.commit()
+
+def get_or_create_wishlist(db: Session, user_id: int):
+    wishlist = db.query(Wishlist).filter(Wishlist.user_id == user_id).first()
+    if not wishlist:
+        new_wishlist = Wishlist(user_id = user_id)
+        db.add(new_wishlist)
+        db.commit()
+        db.refresh(new_wishlist)
+        return new_wishlist
+    return wishlist
