@@ -49,8 +49,8 @@ def checkout(db: Session, user_id: int, cart_id: int) -> Order:
     db.refresh(new_order)
     return new_order
 
-def update_order_status(db: Session, user_id: int, order_id: int, new_status: OrderStatus) -> Order:
-    existing_order = db.query(Order).filter(Order.user_id == user_id, Order.id == order_id).first()
+def update_order_status(db: Session, order_id: int, new_status: OrderStatus) -> Order:
+    existing_order = db.query(Order).filter(Order.id == order_id).first()
     if not existing_order:
         raise HTTPException(status_code = 404, detail = "Order not found")
     existing_order.status = new_status
@@ -65,4 +65,23 @@ def get_order(db: Session, user_id: int, order_id: int) -> Order:
     existing_order = db.query(Order).filter(Order.user_id == user_id, Order.id == order_id).first()
     if not existing_order:
         raise HTTPException(status_code = 404, detail = "Order not found")
+    return existing_order
+
+def get_all_orders(db: Session, status: OrderStatus | None = None) -> list[Order]:
+    if status is None:
+        return db.query(Order).all()
+    return db.query(Order).filter(Order.status == status).all()
+
+def cancel_order(db: Session, user_id: int, order_id: int):
+    existing_order = db.query(Order).filter(Order.user_id == user_id, Order.id == order_id).first()
+    if not existing_order:
+        raise HTTPException(status_code = 404, detail = "Order not found")
+    if existing_order.status != OrderStatus.PENDING:
+        raise HTTPException(status_code = 403, detail = "Order cannot be cancelled")
+    for items in existing_order.order_items:
+        product = db.query(Product).filter(Product.id == items.product_id).first()
+        product.stock_quantity += items.quantity
+    existing_order.status = OrderStatus.CANCELLED
+    db.commit()
+    db.refresh(existing_order)
     return existing_order
