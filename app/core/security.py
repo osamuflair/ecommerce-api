@@ -7,6 +7,7 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.core.config import settings
+from app.models.user import User, UserRole
 
 password_hash = PasswordHash.recommended()
 
@@ -46,3 +47,13 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user
+
+def require_staff(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    if current_user.role not in (UserRole.STAFF, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Staff access required")
+    return current_user
+
+def require_admin(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
