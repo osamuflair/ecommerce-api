@@ -36,8 +36,11 @@ def delete_category(db: Session, category_id: int) -> Category:
     db.commit()
     return category
 
-def get_category_by_id(db: Session, category_id: int) -> Category | None:
-    return db.query(Category).filter(Category.id == category_id).first()
+def get_category_by_id(db: Session, category_id: int) -> Category:
+    existing_category = db.query(Category).filter(Category.id == category_id).first()
+    if not existing_category:
+        raise HTTPException(status_code = 404, detail = "category not found")
+    return existing_category
 
 def get_all_category(db: Session) -> list[Category]:
     return db.query(Category).all()
