@@ -33,7 +33,7 @@ def update_product(db: Session, product_id: int, updated_product: ProductUpdate)
         existing_product.category_id = updated_product.category_id
     db.commit()
     db.refresh(existing_product)
-    return Product(existing_product)
+    return existing_product
 
 def delete_product(db: Session, product_id: int) -> Product:
     existing_product = db.query(Product).filter(Product.id == product_id).first()
