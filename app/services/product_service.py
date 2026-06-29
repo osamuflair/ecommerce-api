@@ -1,9 +1,13 @@
 from sqlalchemy.orm import Session
 from app.models.product import Product
+from app.models.category import Category
 from app.schemas.product import ProductCreate, ProductUpdate
 from fastapi import HTTPException
 
 def create_product(db: Session, created_product: ProductCreate) -> Product:
+    existing_category = db.query(Category).filter(Category.id == created_product.category_id).first()
+    if not existing_category:
+        raise HTTPException(status_code = 404, detail = "Category Not Found")
     existing_product = db.query(Product).filter(Product.name == created_product.name).first()
     if existing_product:
         raise HTTPException(status_code = 400, detail = "Product already exists")
@@ -29,7 +33,12 @@ def update_product(db: Session, product_id: int, updated_product: ProductUpdate)
         existing_product.description = updated_product.description
     if updated_product.price:
         existing_product.price = updated_product.price
+    if updated_product.stock_quantity:
+        existing_product.stock_quantity = updated_product.stock_quantity
     if updated_product.category_id:
+        existing_category = db.query(Category).filter(Category.id == updated_product.category_id).first()
+        if not existing_category:
+            raise HTTPException(status_code = 404, detail = "Category Not Found")
         existing_product.category_id = updated_product.category_id
     db.commit()
     db.refresh(existing_product)
@@ -43,8 +52,10 @@ def delete_product(db: Session, product_id: int) -> Product:
     db.commit()
     return existing_product
 
-def get_product_by_id(db: Session, product_id: int) -> Product | None:
-    return db.query(Product).filter(Product.id == product_id).first()
-
+def get_product_by_id(db: Session, product_id: int) -> Product:
+    existing_product = db.query(Product).filter(Product.id == product_id).first()
+    if not existing_product:
+        raise HTTPException(status_code = 404, detail = "Product does not exists")
+    return existing_product
 def get_all_product(db: Session) -> list[Product]:
     return db.query(Product).all()
