@@ -33,3 +33,12 @@ All endpoints are prefixed with `/api/v1`
 - `GET /orders` — View your orders
 - `GET /categories` — Browse categories
 - `GET /products` — Browse products
+
+## Getting Started
+1. Clone the repo: `git clone https://github.com/osamuflair/ecommerce-api.git`
+2. Create and activate a virtual environment: `python -m venv venv` then `venv\Scripts\activate`
+3. Install dependencies: `pip install -r requirements.txt`
+4. Create a `.env` file in the root folder with: `DATABASE_URL`, `SECRET_KEY`, `ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`
+5. Run database migrations: `alembic upgrade head`
+6. Start the server: `uvicorn main:app --reload`
+7. Visit `http://127.0.0.1:8000/docs` to explore the API
