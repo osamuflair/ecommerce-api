@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.address import Address
+from app.models.order import Order
 from app.schemas.address import AddressCreate,  AddressUpdate
 from fastapi import HTTPException
 
@@ -56,6 +57,9 @@ def delete_address(db: Session, user_id: int, address_id: int) -> Address:
     ).first()
     if not existing_address:
         raise HTTPException(status_code = 404, detail = "Address not found")
+    existing_orders = db.query(Order).filter(Order.address_id == address_id).first()
+    if existing_orders:
+        raise HTTPException(status_code=409, detail="Address is attached to an existing order and cannot be deleted")
     db.delete(existing_address)
     db.commit()
     return existing_address

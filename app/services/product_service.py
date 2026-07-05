@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.product import Product
 from app.models.category import Category
 from app.schemas.product import ProductCreate, ProductUpdate
+from app.models.order import OrderItem
 from fastapi import HTTPException
 
 def create_product(db: Session, created_product: ProductCreate) -> Product:
@@ -48,6 +49,9 @@ def delete_product(db: Session, product_id: int) -> Product:
     existing_product = db.query(Product).filter(Product.id == product_id).first()
     if not existing_product:
         raise HTTPException(status_code = 404, detail = "Product not found")
+    existing_order_items = db.query(OrderItem).filter(OrderItem.product_id == product_id).first()
+    if existing_order_items:
+        raise HTTPException(status_code=409, detail="Product has existing orders and cannot be deleted")
     db.delete(existing_product)
     db.commit()
     return existing_product

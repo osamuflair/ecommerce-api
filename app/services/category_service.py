@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.category import Category
+from app.models.product import Product
 from app.schemas.category import CategoryCreate, CategoryUpdate
 from fastapi import HTTPException
 
@@ -32,6 +33,9 @@ def delete_category(db: Session, category_id: int) -> Category:
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
         raise HTTPException(status_code = 404, detail = "Category not found")
+    existing_products = db.query(Product).filter(Product.category_id == category_id).first()
+    if existing_products:
+        raise HTTPException(status_code=409, detail="Category has existing products and cannot be deleted")
     db.delete(category)
     db.commit()
     return category
