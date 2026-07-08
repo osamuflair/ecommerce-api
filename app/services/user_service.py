@@ -50,7 +50,7 @@ def update_user(db: Session, user_id: int, updated_data: UserUpdate) -> User:
     Updates the current user's username and/or email.
 
     Validates that the current user exists.
-    Valiates that the username and/or email are not already in use by other users but the current user.
+    Validates that the username and/or email are not already in use by other users but the current user.
     Updates the current user.
 
     Args:
