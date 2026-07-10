@@ -5,6 +5,7 @@ from app.schemas.address import AddressCreate,  AddressUpdate
 from fastapi import HTTPException
 
 def create_address(db: Session, user_id: int, created_address: AddressCreate) -> Address:
+    """Creates a new address for the current user."""
     new_address = Address(
         user_id = user_id,
         full_name = created_address.full_name,
@@ -19,6 +20,24 @@ def create_address(db: Session, user_id: int, created_address: AddressCreate) ->
     return new_address
 
 def update_address(db: Session, user_id: int, address_id: int, updated_address: AddressUpdate) -> Address:
+    """
+    Updates the current user address(phone_number, street_address, city, or/and state).
+    
+    Validates that the address exists, and that it belongs to the user.
+    Updates the user address.
+
+    Args:
+        db: DB session.
+        user_id: ID of the user.
+        address_id: ID of the address.
+        updated_address: an AddressUpdate model that contains what the user wants to change.
+
+    Returns:
+        The updated address model.
+
+    Raises:
+        HttpException 404: If the user does not exists, or if the address does not belong to the user.
+    """
     existing_address = db.query(Address).filter(
         Address.id == address_id,
         Address.user_id == user_id
@@ -38,6 +57,24 @@ def update_address(db: Session, user_id: int, address_id: int, updated_address: 
     return existing_address
 
 def set_default_address(db: Session, user_id: int, address_id: int) -> Address:
+    """
+    Sets a default address for a user, by changing is_default to True.
+    
+    Validates that the address exists, and that it belongs to the user.
+    Checks if current user has any address set as default and removes it.
+    set address as default.
+    
+    Args:
+        db: DB session.
+        user_id: ID of user.
+        address_id: Address that wants to be set to default.
+        
+    Returns:
+        The new default address model.
+        
+    Raises:
+        HTTPException 404: If the user does not exists, or if the address does not belong to the user.
+        """
     existing_address = db.query(Address).filter(
         Address.id == address_id,
         Address.user_id == user_id
@@ -51,6 +88,25 @@ def set_default_address(db: Session, user_id: int, address_id: int) -> Address:
     return existing_address
 
 def delete_address(db: Session, user_id: int, address_id: int) -> Address:
+    """
+    Deletes a user address.
+    
+    Validates that the address exists, and that it belongs to the user.
+    Validates that the address has not been used for any order.
+    Deletes address.
+
+    Args:
+        db: DB session.
+        user_id: ID of user.
+        address_id: ID of the address to delete.
+
+    Returns:
+        Returns the deleted address model
+
+    Raises:
+        HTTPException 404: If the user does not exists, or if the address does not belongs to the user.
+        HTTPException 409: If the address is attached to an existing order.
+        """
     existing_address = db.query(Address).filter(
         Address.id == address_id,
         Address.user_id == user_id
@@ -65,4 +121,5 @@ def delete_address(db: Session, user_id: int, address_id: int) -> Address:
     return existing_address
 
 def get_user_addresses(db: Session, user_id: int) -> list[Address]:
+    """Gets all the addresses of the current user."""
     return db.query(Address).filter(Address.user_id == user_id).all()
