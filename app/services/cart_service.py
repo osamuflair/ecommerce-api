@@ -5,6 +5,29 @@ from app.models.product import Product
 from fastapi import HTTPException
 
 def add_cart_item(db: Session, created_cart_item: CartItemCreate, cart_id: int) -> CartItem:
+    """
+    Adds cart items.
+
+    Validates the cart item.
+    If the cart item already exists:
+        - Increment the quantity in cart by the amount to be added.
+        - Validates that the new quantity is less than the stock quantity of the product.
+        - Changes the quantity of the item in cart to the new quantity.
+    If the cart item does not exist in cart:
+        - Validates that the quantity is less than the stock quantity of the product.
+        - Add item to cart.
+
+    Args:
+        db: DB session.
+        created_cart_item: A CartItemCreate model that contains the product_id and quantity of the item.
+        cart_id: ID of the cart.
+
+    Returns:
+        The created or updated CartItem model.
+
+    Raises:
+        HTTPException 409: If the new quantity of the cart item is greater than the available stock quantity.
+    """
     existing_cart_item = db.query(CartItem).filter(
         CartItem.cart_id == cart_id,
         CartItem.product_id == created_cart_item.product_id
@@ -31,6 +54,26 @@ def add_cart_item(db: Session, created_cart_item: CartItemCreate, cart_id: int) 
     return new_cart_item
 
 def update_cart_item(db: Session, cart_id: int, updated_cart_item: CartItemUpdate, cart_item_id: int) -> CartItem:
+    """
+    Updates the quantity of an item existing in cart.
+    
+    Validates that the cart item exists.
+    Validates that the updated quantity is less than the stock quantity.
+    Updates cart item.
+    
+    Args:
+        db: DB session.
+        cart_id: ID of cart.
+        updated_cart_item: A CartItemUpdate model that contains the quantity to be updated to.
+        cart_item_id: ID of cart_item.
+        
+    Returns:
+        The updated CartItem model.
+        
+    Raises:
+        HTTPException 404: If cart item does not exists.
+        HTTPException 409: If the updated quantity is greater than the quantity in stock.
+        """
     existing_cart_item = db.query(CartItem).filter(
         CartItem.id == cart_item_id,
         CartItem.cart_id == cart_id
@@ -46,6 +89,23 @@ def update_cart_item(db: Session, cart_id: int, updated_cart_item: CartItemUpdat
     return existing_cart_item
 
 def remove_cart_item(db: Session, cart_id: int, cart_item_id: int) -> CartItem:
+    """
+    Removes an item from cart.
+    
+    Validates that the cart item exists.
+    Deletes the item from cart.
+    
+    Args:
+        db: DB session.
+        cart_id: ID of the cart.
+        cart_item_id: ID of the item to be deleted from cart.
+
+    Returns:
+        The deleted cartItem model.
+
+    Raises:
+        HTTPException 404: If the cart item does not exists.
+        """
     existing_cart_item = db.query(CartItem).filter(
         CartItem.id == cart_item_id,
         CartItem.cart_id == cart_id
@@ -57,13 +117,16 @@ def remove_cart_item(db: Session, cart_id: int, cart_item_id: int) -> CartItem:
     return existing_cart_item
 
 def get_cart_items(db: Session, cart_id: int) -> list[CartItem]:
+    """Gets all items in a cart."""
     return db.query(CartItem).filter(CartItem.cart_id == cart_id).all()
 
 def clear_cart(db: Session, cart_id: int):
+    """Clear all items in a cart."""
     db.query(CartItem).filter(CartItem.cart_id == cart_id).delete()
     db.commit()
 
 def get_or_create_cart(db: Session, user_id: int) -> Cart:
+    """Gets a users cart if it exists, or creates the cart first if it does not exists."""
     existing_cart = db.query(Cart).filter(Cart.user_id == user_id).first()
     if not existing_cart:
         new_cart = Cart(user_id = user_id)
