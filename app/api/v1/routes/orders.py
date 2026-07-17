@@ -17,28 +17,34 @@ router = APIRouter(
 
 @router.post("/checkout")
 def check_out(db: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)]):
+    """Places an order for the current user."""
     cart = get_or_create_cart(db, current_user.id)
     checkout(db, current_user.id, cart.id)
     return({"Message": "Order Successfully Placed"})
 
 @router.get("/", response_model = list[OrderResponse])
 def user_orders_get(db: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)]):
+    """Gets all orders of the current user."""
     return user_orders(db, current_user.id)
 
 @router.get("/all", response_model = list[OrderResponse])
 def orders_get_all(db: Annotated[Session, Depends(get_session)], staff: Annotated[User, Depends(require_staff)], status: OrderStatus | None = None):
+    """Gets all orders. Accessible by staff and admin only."""
     return get_all_orders(db, status)
 
 @router.get("/{order_id}", response_model = OrderResponse)
 def order_get(db: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)], order_id: int):
+    """Gets a specific order of the current user."""
     return get_order(db, current_user.id, order_id)
 
 @router.put("/{order_id}/status")
 def order_status_update(db: Annotated[Session, Depends(get_session)], staff: Annotated[User, Depends(require_staff)], new_status: OrderStatus, order_id: int):
+    """Updates the status of an order. Accessible by staff and admin only."""
     update_order_status(db, order_id, new_status)
     return({"Message": "Order Status Successfully Updated"})
 
 @router.put("/{order_id}/cancel")
 def order_cancellation(db: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)], order_id: int):
+    """Cancels a specific order of the current user."""
     cancel_order(db, current_user.id, order_id)
     return({"Message": "Order Successfully Cancelled"})

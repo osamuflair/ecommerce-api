@@ -18,24 +18,29 @@ router = APIRouter(
 
 @router.post("/register")
 def user_registration(user_details: UserCreate, db: Annotated[Session, Depends(get_session)]):
+        """Registers a new user."""
         create_user(db, user_details)
         return({"Message": "Successfully Registered"})
 
 @router.post("/login")
 def user_log_in(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Annotated[Session, Depends(get_session)]):
+    """Logs a user in."""
     token = log_in(db, form_data.username, form_data.password)
     return {"access_token": token, "token_type": "bearer"}
 
 @router.get("/me", response_model = UserResponse)
 def get_user(current_user: Annotated[User, Depends(get_current_user)]):
+      """Gets current user."""
       return current_user
 
 @router.put("/me")
 def user_update(current_user: Annotated[User, Depends(get_current_user)], db: Annotated[Session, Depends(get_session)], updated_data: UserUpdate):
+    """Updates current user info."""
     update_user(db, current_user.id, updated_data)
     return({"Message": "Details Successfully Updated"})
 
 @router.delete("/me")
 def user_deactivate(current_user: Annotated[User, Depends(get_current_user)], db: Annotated[Session, Depends(get_session)]):
+    """Deactivates the current user."""
     deactivate_user(db, current_user.id)
-    return({"Message": "Account Successfully Deleted"})
+    return({"Message": "Account Successfully Deactivated"})
