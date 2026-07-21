@@ -1,8 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
 class OrderItemCreate(BaseModel):
-    quantity:int
+    quantity:int = Field(gt=0, le=1000)
 
 class OrderItemResponse(BaseModel):
     id: int
@@ -14,7 +14,7 @@ class OrderItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes = True)
 
 class OrderItemsUpdate(BaseModel):
-    quantity: int
+    quantity: int = Field(gt=0, le=1000)
 
 class OrderResponse(BaseModel):
     id: int

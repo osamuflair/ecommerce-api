@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator, ConfigDict
+from pydantic import BaseModel, field_validator, ConfigDict, Field
 
 import re
 
@@ -46,19 +46,12 @@ class NigeriaState(str, Enum):
     ZAMFARA = "Zamfara"
 
 class AddressCreate(BaseModel):
-    full_name: str
+    full_name: str = Field(min_length=2, max_length=50)
     phone_number: str
     street_address: str
     city: str
     state: NigeriaState
 
-    @field_validator("full_name",)
-    @classmethod
-    def valid_names(cls, v):
-        if len(v) < 2:
-            raise ValueError("Name must have atleast 2 characters")
-        return v
-    
     @field_validator("phone_number")
     @classmethod
     def valid_phone(cls, v):
@@ -72,7 +65,7 @@ class AddressResponse(BaseModel):
     user_id: int
     full_name: str
     phone_number: str
-    street_address: str | None = None
+    street_address: str
     city: str
     state: str
     is_default: bool
@@ -84,4 +77,13 @@ class AddressUpdate(BaseModel):
     phone_number: str | None = None
     street_address: str | None = None
     city: str | None = None
-    state: str | None = None
+    state: NigeriaState | None = None
+
+    @field_validator("phone_number")
+    @classmethod
+    def valid_phone(cls, v):
+        if v is None:
+            return v
+        if not PHONE_PATTERN.match(v):
+            raise ValueError("invalid phone number")
+        return v
