@@ -28,9 +28,9 @@ def user_orders_get(db: Annotated[Session, Depends(get_session)], current_user: 
     return user_orders(db, current_user.id)
 
 @router.get("/all", response_model = list[OrderResponse])
-def orders_get_all(db: Annotated[Session, Depends(get_session)], staff: Annotated[User, Depends(require_staff)], status: OrderStatus | None = None):
+def orders_get_all(db: Annotated[Session, Depends(get_session)], staff: Annotated[User, Depends(require_staff)], status: OrderStatus | None = None, skip: int = 0, limit: int = 10):
     """Gets all orders. Accessible by staff and admin only."""
-    return get_all_orders(db, status)
+    return get_all_orders(db, status, skip, limit)
 
 @router.get("/{order_id}", response_model = OrderResponse)
 def order_get(db: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)], order_id: int):

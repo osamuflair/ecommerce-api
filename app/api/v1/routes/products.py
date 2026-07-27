@@ -31,9 +31,9 @@ def product_delete(db: Annotated[Session, Depends(get_session)], admin: Annotate
     return ({"message": "Product Successfully Deleted"})
 
 @router.get("/", response_model = list[ProductResponse])
-def product_get_all(db: Annotated[Session, Depends(get_session)]):
+def product_get_all(db: Annotated[Session, Depends(get_session)], skip: int = 0, limit: int = 10):
     """Gets all products."""
-    return get_all_product(db)
+    return get_all_product(db, skip, limit )
 
 @router.get("/{product_id}", response_model = ProductResponse)
 def product_get_by_id(db: Annotated[Session, Depends(get_session)], product_id: int):

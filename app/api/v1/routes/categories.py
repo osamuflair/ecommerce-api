@@ -31,9 +31,9 @@ def category_delete(db: Annotated[Session, Depends(get_session)], admin: Annotat
     return {"Message": "Category Successfully Deleted"}
 
 @router.get("/", response_model = list[CategoryResponse])
-def categories_get_all(db: Annotated[Session, Depends(get_session)]):
+def categories_get_all(db: Annotated[Session, Depends(get_session)], skip: int = 0, limit: int = 10):
     """Gets all categories."""
-    return get_all_category(db)
+    return get_all_category(db, skip, limit)
 
 @router.get("/{category_id}", response_model = CategoryResponse)
 def category_get_by_id(db: Annotated[Session, Depends(get_session)], category_id: int):

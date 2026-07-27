@@ -132,6 +132,6 @@ def get_product_by_id(db: Session, product_id: int) -> Product:
     if not existing_product:
         raise HTTPException(status_code = 404, detail = "Product does not exists")
     return existing_product
-def get_all_product(db: Session) -> list[Product]:
+def get_all_product(db: Session, skip: int = 0, limit: int = 10) -> list[Product]:
     """Gets all products."""
-    return db.query(Product).all()
+    return db.query(Product).offset(skip).limit(limit).all()

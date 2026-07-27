@@ -113,11 +113,11 @@ def get_order(db: Session, user_id: int, order_id: int) -> Order:
         raise HTTPException(status_code = 404, detail = "Order not found")
     return existing_order
 
-def get_all_orders(db: Session, status: OrderStatus | None = None) -> list[Order]:
+def get_all_orders(db: Session, status: OrderStatus | None = None, skip: int = 0, limit: int = 10) -> list[Order]:
     """Gets all orders. Optionally filters by status if provided."""
     if status is None:
-        return db.query(Order).all()
-    return db.query(Order).filter(Order.status == status).all()
+        return db.query(Order).offset(skip).limit(limit).all()
+    return db.query(Order).filter(Order.status == status).offset(skip).limit(limit).all()
 
 def cancel_order(db: Session, user_id: int, order_id: int) -> Order:
     """

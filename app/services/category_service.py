@@ -112,6 +112,6 @@ def get_category_by_id(db: Session, category_id: int) -> Category:
         raise HTTPException(status_code = 404, detail = "category not found")
     return existing_category
 
-def get_all_category(db: Session) -> list[Category]:
+def get_all_category(db: Session, skip: int = 0, limit: int = 10) -> list[Category]:
     """Gets all the categories"""
-    return db.query(Category).all()
+    return db.query(Category).offset(skip).limit(limit).all()
