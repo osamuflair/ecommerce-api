@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.models.user import User
 from app.core.database import get_session
-from app.schemas.user import UserResponse
+from app.schemas.user import UserResponse, RefreshTokenRequest
 from app.core.security import get_current_user
 from app.services.user_service import create_user, update_user, deactivate_user
-from app.services.auth_service import log_in
+from app.services.auth_service import log_in, refresh_access_token
 from app.schemas.user import UserCreate, UserUpdate
 
 router = APIRouter(
@@ -44,3 +44,9 @@ def user_deactivate(current_user: Annotated[User, Depends(get_current_user)], db
     """Deactivates the current user."""
     deactivate_user(db, current_user.id)
     return({"Message": "Account Successfully Deactivated"})
+
+@router.post("/refresh")
+def token_refresh(refresh_data: RefreshTokenRequest, db: Annotated[Session, Depends(get_session)]):
+    """Refreshes the access token using a valid refresh token."""
+    new_token = refresh_access_token(db, refresh_data.refresh_token)
+    return {"access_token": new_token, "token_type": "bearer"}

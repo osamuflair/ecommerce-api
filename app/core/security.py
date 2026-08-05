@@ -1,5 +1,6 @@
 from pwdlib import PasswordHash
 import jwt
+import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -10,8 +11,6 @@ from app.core.config import settings
 from app.models.user import User, UserRole
 
 password_hash = PasswordHash.recommended()
-
-WAT = timezone(timedelta(hours=1))
 
 def hash_password(password):
     """Hashes a password."""
@@ -25,9 +24,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     """Creates access token for a current user."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(WAT) + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(WAT) + timedelta(minutes=15)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({'exp': expire})
     jwt_encoded = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return jwt_encoded
@@ -79,3 +78,9 @@ def require_admin(current_user: Annotated[User, Depends(get_current_user)]) -> U
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
+
+def create_refresh_token() -> dict:
+    """Generates a refresh token and its expiry datetime (7 days)."""
+    token = secrets.token_hex(32)
+    expiry = datetime.now(timezone.utc) + timedelta(days=7)
+    return {"token": token, "expiry": expiry}

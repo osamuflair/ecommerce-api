@@ -71,3 +71,6 @@ class UserUpdate(BaseModel):
         if ALLOWED_PATTERN.search(v):
             return v
         raise ValueError("username must contain, letters, numbers and underscore")
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

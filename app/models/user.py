@@ -19,6 +19,8 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole, name = "user_role_enum"), nullable = False, default = UserRole.CUSTOMER, server_default = "CUSTOMER")
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(server_default = func.now())
+    refresh_token: Mapped[str | None]
+    refresh_token_expiry: Mapped[datetime | None]
     cart: Mapped["Cart"] = relationship(back_populates = "user", lazy = "select")
     orders: Mapped[list["Order"]] = relationship(back_populates = "user", lazy = "select")
     wishlist: Mapped["Wishlist"] = relationship(back_populates = "user", lazy = "select")
